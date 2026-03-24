@@ -288,7 +288,7 @@
 </div>
 
 <script>
-    // ---------- ПРОФИЛИ ТРЕНИРОВОК ----------
+    // ---------- ПРОФИЛИ ТРЕНИРОВОК (без изменений) ----------
     const PROFILES = {
         base: {
             name: "Базовая тренировка (по расписанию)",
@@ -328,50 +328,72 @@
     const WATER_TARGET = 2500;
     const WATER_STEPS = ["Выпить стакан воды сразу после пробуждения", "Пить по 200–300 мл каждые 1–1.5 часа", "Следить за цветом мочи (светлый)"];
 
-    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ API ----------
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+    let completedData = {};
+    let currentTab = "home";
+    let currentProfile = "base";
     let tgId = null;
     let apiUrl = null;
-    let isSyncing = false; // чтобы избежать рекурсии при синхронизации
+    let syncTimeout = null;
 
-    // ---------- ФУНКЦИИ API ----------
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ API ----------
     async function syncToServer() {
-        if (!apiUrl || !tgId) return;
-        if (isSyncing) return;
-        isSyncing = true;
+        if (!apiUrl || !tgId) {
+            console.log("syncToServer: нет apiUrl или tgId");
+            return;
+        }
+        // Убираем завершающий слеш, если есть
+        let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
         try {
-            const response = await fetch(`${apiUrl}/save_data`, {
+            console.log(`Отправка данных на ${baseUrl}/save_data для tg_id=${tgId}`);
+            const response = await fetch(`${baseUrl}/save_data`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tg_id: tgId, data: completedData })
             });
-            if (!response.ok) throw new Error('Server error');
-            console.log('Data saved to server');
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error ${response.status}: ${text}`);
+            }
+            const result = await response.json();
+            console.log("✅ Данные сохранены на сервере", result);
         } catch (err) {
-            console.warn('Failed to sync to server', err);
-        } finally {
-            isSyncing = false;
+            console.warn("❌ Ошибка синхронизации с сервером:", err);
         }
     }
 
     async function loadFromServer() {
-        if (!apiUrl || !tgId) return;
+        if (!apiUrl || !tgId) {
+            console.log("loadFromServer: нет apiUrl или tgId");
+            return false;
+        }
+        let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
         try {
-            const response = await fetch(`${apiUrl}/get_data?tg_id=${tgId}`);
-            if (!response.ok) throw new Error('Server error');
+            console.log(`Загрузка данных с ${baseUrl}/get_data?tg_id=${tgId}`);
+            const response = await fetch(`${baseUrl}/get_data?tg_id=${tgId}`);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Server error ${response.status}: ${text}`);
+            }
             const data = await response.json();
             if (Object.keys(data).length > 0) {
+                console.log(`✅ Загружено ${Object.keys(data).length} записей с сервера`);
                 completedData = data;
-                // Сохраняем локально для кэша
+                // Сохраняем локально
                 localStorage.setItem('fitnessTrackerData', JSON.stringify(completedData));
-                // Также сохраняем выбранный профиль, если он есть в данных
+                // Восстанавливаем профиль, если он сохранён
                 if (data._selectedProfile && PROFILES[data._selectedProfile]) {
                     currentProfile = data._selectedProfile;
                     localStorage.setItem('selectedProfile', currentProfile);
                 }
-                updateStreakAndUI(); // обновляем отображение после загрузки
+                return true;
+            } else {
+                console.log("С сервера пришли пустые данные");
+                return false;
             }
         } catch (err) {
-            console.warn('Failed to load from server, using local data', err);
+            console.warn("❌ Ошибка загрузки с сервера:", err);
+            return false;
         }
     }
 
@@ -379,7 +401,7 @@
     function loadStorage() {
         const saved = localStorage.getItem("fitnessTrackerData");
         if (saved) {
-            try { completedData = JSON.parse(saved); } catch(e) { completedData = {}; }
+            try { completedData = JSON.parse(saved); console.log("Загружено из localStorage"); } catch(e) { completedData = {}; }
         }
         if (!completedData) completedData = {};
         const savedProfile = localStorage.getItem("selectedProfile");
@@ -388,20 +410,20 @@
 
     function saveStorage() {
         localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData));
-        // После сохранения локально отправляем на сервер (если API доступен)
-        syncToServer();
+        // Отправляем на сервер с задержкой, чтобы не слать при каждом чихе
+        if (syncTimeout) clearTimeout(syncTimeout);
+        syncTimeout = setTimeout(() => syncToServer(), 300);
     }
 
     function saveProfile() {
         localStorage.setItem("selectedProfile", currentProfile);
-        // Также сохраняем профиль в общие данные, чтобы он синхронизировался с сервером
         if (completedData) {
             completedData._selectedProfile = currentProfile;
             saveStorage(); // это вызовет syncToServer
         }
     }
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (не изменены) ----------
+    // ---------- ОСТАЛЬНЫЕ ФУНКЦИИ (основная логика) ----------
     function getMoscowDay() {
         const now = new Date();
         const mskDate = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
@@ -411,10 +433,6 @@
         const dd = String(mskDate.getDate()).padStart(2, '0');
         return { dayOfWeek, dateStr: `${yyyy}-${mm}-${dd}`, mskDate };
     }
-
-    let completedData = {};
-    let currentTab = "home";
-    let currentProfile = "base";
 
     function getDayStatus(dateStr) {
         if (!completedData[dateStr]) {
@@ -510,7 +528,7 @@
         updateStreakAndUI();
     }
 
-    // ----- ОТРИСОВКА ВКЛАДОК (без изменений, только вызов saveStorage в нужных местах) -----
+    // ----- ОТРИСОВКА ВКЛАДОК (полностью скопирована из вашего кода, но с заменой saveStorage на наш) -----
     function renderCurrentTab() {
         const { dateStr, dayOfWeek } = getMoscowDay();
         const dayStatus = getDayStatus(dateStr);
@@ -750,7 +768,7 @@
                 }
                 saveStorage();
                 updateStreakAndUI();
-                renderCurrentTab(); // вызываем для обновления слайдера, но чтобы избежать рекурсии, проверяем
+                renderCurrentTab(); // обновляем для корректного отображения слайдера
             };
             if (slider) slider.addEventListener("input", (e) => updateWater(parseInt(e.target.value)));
             document.getElementById("add200")?.addEventListener("click", () => updateWater((dayStatus.waterMl || 0) + 200));
@@ -872,30 +890,24 @@
         });
     }
 
-    // ---------- ИНИЦИАЛИЗАЦИЯ С API ----------
+    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
     function init() {
-        // Получаем параметры из URL (передаются от бота)
         const urlParams = new URLSearchParams(window.location.search);
         tgId = urlParams.get('tg_id');
-        apiUrl = urlParams.get('api_url');
+        apiUrl = "https://emil-nonboding-comfily.ngrok-free.dev";
+        console.log("Получены параметры:", { tgId, apiUrl });
 
-        // Загружаем локальные данные
         loadStorage();
 
-        // Если есть API, пытаемся загрузить с сервера (перезапишет локальные)
         if (apiUrl && tgId) {
-            loadFromServer().then(() => {
-                // После загрузки с сервера обновляем UI
-                updateStreakAndUI();
-            }).catch(() => {
-                // Если не удалось, всё равно продолжаем с локальными
+            // Сначала загружаем с сервера, потом отображаем
+            loadFromServer().finally(() => {
                 updateStreakAndUI();
             });
         } else {
             updateStreakAndUI();
         }
 
-        // Настройка остального
         bindTabs();
         updateDateDisplay();
         setInterval(() => { checkDateChange(); updateDateDisplay(); }, 60000);
