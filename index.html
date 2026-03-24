@@ -328,7 +328,80 @@
     const WATER_TARGET = 2500;
     const WATER_STEPS = ["Выпить стакан воды сразу после пробуждения", "Пить по 200–300 мл каждые 1–1.5 часа", "Следить за цветом мочи (светлый)"];
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ API ----------
+    let tgId = null;
+    let apiUrl = null;
+    let isSyncing = false; // чтобы избежать рекурсии при синхронизации
+
+    // ---------- ФУНКЦИИ API ----------
+    async function syncToServer() {
+        if (!apiUrl || !tgId) return;
+        if (isSyncing) return;
+        isSyncing = true;
+        try {
+            const response = await fetch(`${apiUrl}/save_data`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tg_id: tgId, data: completedData })
+            });
+            if (!response.ok) throw new Error('Server error');
+            console.log('Data saved to server');
+        } catch (err) {
+            console.warn('Failed to sync to server', err);
+        } finally {
+            isSyncing = false;
+        }
+    }
+
+    async function loadFromServer() {
+        if (!apiUrl || !tgId) return;
+        try {
+            const response = await fetch(`${apiUrl}/get_data?tg_id=${tgId}`);
+            if (!response.ok) throw new Error('Server error');
+            const data = await response.json();
+            if (Object.keys(data).length > 0) {
+                completedData = data;
+                // Сохраняем локально для кэша
+                localStorage.setItem('fitnessTrackerData', JSON.stringify(completedData));
+                // Также сохраняем выбранный профиль, если он есть в данных
+                if (data._selectedProfile && PROFILES[data._selectedProfile]) {
+                    currentProfile = data._selectedProfile;
+                    localStorage.setItem('selectedProfile', currentProfile);
+                }
+                updateStreakAndUI(); // обновляем отображение после загрузки
+            }
+        } catch (err) {
+            console.warn('Failed to load from server, using local data', err);
+        }
+    }
+
+    // ---------- ЛОКАЛЬНОЕ ХРАНЕНИЕ ----------
+    function loadStorage() {
+        const saved = localStorage.getItem("fitnessTrackerData");
+        if (saved) {
+            try { completedData = JSON.parse(saved); } catch(e) { completedData = {}; }
+        }
+        if (!completedData) completedData = {};
+        const savedProfile = localStorage.getItem("selectedProfile");
+        if (savedProfile && PROFILES[savedProfile]) currentProfile = savedProfile;
+    }
+
+    function saveStorage() {
+        localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData));
+        // После сохранения локально отправляем на сервер (если API доступен)
+        syncToServer();
+    }
+
+    function saveProfile() {
+        localStorage.setItem("selectedProfile", currentProfile);
+        // Также сохраняем профиль в общие данные, чтобы он синхронизировался с сервером
+        if (completedData) {
+            completedData._selectedProfile = currentProfile;
+            saveStorage(); // это вызовет syncToServer
+        }
+    }
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (не изменены) ----------
     function getMoscowDay() {
         const now = new Date();
         const mskDate = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
@@ -342,18 +415,6 @@
     let completedData = {};
     let currentTab = "home";
     let currentProfile = "base";
-
-    function loadStorage() {
-        const saved = localStorage.getItem("fitnessTrackerData");
-        if (saved) {
-            try { completedData = JSON.parse(saved); } catch(e) { completedData = {}; }
-        }
-        if (!completedData) completedData = {};
-        const savedProfile = localStorage.getItem("selectedProfile");
-        if (savedProfile && PROFILES[savedProfile]) currentProfile = savedProfile;
-    }
-    function saveStorage() { localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData)); }
-    function saveProfile() { localStorage.setItem("selectedProfile", currentProfile); }
 
     function getDayStatus(dateStr) {
         if (!completedData[dateStr]) {
@@ -398,7 +459,6 @@
         renderCurrentTab();
     }
 
-    // Получить план тренировки на сегодня по выбранному профилю
     function getCurrentWorkoutPlan() {
         const { dayOfWeek } = getMoscowDay();
         const profile = PROFILES[currentProfile];
@@ -406,7 +466,6 @@
         return profile.schedule[dayOfWeek] || profile.schedule[0];
     }
 
-    // Автоматическая установка всех чекбоксов тренировки
     function setWorkoutAllChecks(dateStr, checked) {
         const dayStatus = getDayStatus(dateStr);
         const plan = getCurrentWorkoutPlan();
@@ -448,10 +507,10 @@
             WATER_STEPS.forEach((_, idx) => { dayStatus[`water_step_${idx}`] = false; });
         }
         saveStorage();
-        updateStreakAndUI(); // <-- исправлено: теперь обновляем стрейк и перерисовываем
+        updateStreakAndUI();
     }
 
-    // ----- ОТРИСОВКА ВКЛАДОК -----
+    // ----- ОТРИСОВКА ВКЛАДОК (без изменений, только вызов saveStorage в нужных местах) -----
     function renderCurrentTab() {
         const { dateStr, dayOfWeek } = getMoscowDay();
         const dayStatus = getDayStatus(dateStr);
@@ -813,11 +872,32 @@
         });
     }
 
+    // ---------- ИНИЦИАЛИЗАЦИЯ С API ----------
     function init() {
+        // Получаем параметры из URL (передаются от бота)
+        const urlParams = new URLSearchParams(window.location.search);
+        tgId = urlParams.get('tg_id');
+        apiUrl = urlParams.get('api_url');
+
+        // Загружаем локальные данные
         loadStorage();
+
+        // Если есть API, пытаемся загрузить с сервера (перезапишет локальные)
+        if (apiUrl && tgId) {
+            loadFromServer().then(() => {
+                // После загрузки с сервера обновляем UI
+                updateStreakAndUI();
+            }).catch(() => {
+                // Если не удалось, всё равно продолжаем с локальными
+                updateStreakAndUI();
+            });
+        } else {
+            updateStreakAndUI();
+        }
+
+        // Настройка остального
         bindTabs();
         updateDateDisplay();
-        updateStreakAndUI();
         setInterval(() => { checkDateChange(); updateDateDisplay(); }, 60000);
         const { dateStr } = getMoscowDay();
         lastDateStr = dateStr;
@@ -833,6 +913,7 @@
         initTheme();
         updateStreakAndUI();
     }
+
     init();
 </script>
 </body>
