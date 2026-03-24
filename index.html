@@ -12,14 +12,49 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            background: #f8fafc;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 20px 16px 40px;
-            color: #0f172a;
+        /* ----- Базовые переменные (светлая тема) ----- */
+        :root {
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --border-light: #e2e8f0;
+            --border-lighter: #f1f5f9;
+            --tab-bg: #eef2ff;
+            --tab-inactive: #334155;
+            --badge-bg: #e2e8f0;
+            --meal-bg: #fef9e6;
+            --btn-secondary: #e2e8f0;
+            --btn-add200: #fee2e2;
+            --btn-add500: #fed7aa;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
         }
 
-        /* контейнер */
+        body.dark {
+            --bg-body: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-light: #334155;
+            --border-lighter: #2d3a4e;
+            --tab-bg: #334155;
+            --tab-inactive: #cbd5e1;
+            --badge-bg: #475569;
+            --meal-bg: #2d3a4e;
+            --btn-secondary: #475569;
+            --btn-add200: #7f2d2d;
+            --btn-add500: #b45309;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        body {
+            background: var(--bg-body);
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px 16px 40px;
+            color: var(--text-primary);
+            transition: background 0.2s, color 0.2s;
+        }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -36,6 +71,7 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.3);
+            position: relative;
         }
         .streak-left {
             display: flex;
@@ -63,42 +99,61 @@
             font-size: 14px;
             font-weight: 500;
         }
+        .theme-toggle {
+            background: rgba(0,0,0,0.2);
+            border: none;
+            border-radius: 40px;
+            width: 40px;
+            height: 40px;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: 0.2s;
+        }
+        .theme-toggle:hover {
+            background: rgba(0,0,0,0.4);
+        }
 
         /* вкладки */
         .tabs {
             display: flex;
             gap: 8px;
-            background: #eef2ff;
+            background: var(--tab-bg);
             padding: 4px;
             border-radius: 48px;
             margin-bottom: 24px;
+            flex-wrap: wrap;
         }
         .tab-btn {
             flex: 1;
             background: transparent;
             border: none;
             padding: 10px 0;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             border-radius: 40px;
-            color: #334155;
+            color: var(--tab-inactive);
             transition: all 0.2s ease;
             cursor: pointer;
+            white-space: nowrap;
         }
         .tab-btn.active {
-            background: white;
+            background: var(--card-bg);
             color: #f97316;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-sm);
         }
 
         /* карточки разделов */
         .plan-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 28px;
             padding: 20px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
             transition: all 0.2s;
         }
         .plan-header {
@@ -107,7 +162,7 @@
             align-items: baseline;
             flex-wrap: wrap;
             margin-bottom: 16px;
-            border-bottom: 2px solid #f1f5f9;
+            border-bottom: 2px solid var(--border-lighter);
             padding-bottom: 12px;
         }
         .plan-title {
@@ -124,14 +179,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #f8fafc;
+            background: var(--bg-body);
             padding: 5px 12px;
             border-radius: 40px;
         }
         .daily-check label {
             font-size: 14px;
             font-weight: 500;
-            color: #1e293b;
+            color: var(--text-primary);
         }
         input[type="checkbox"] {
             width: 20px;
@@ -140,34 +195,30 @@
             cursor: pointer;
         }
 
-        /* контент плана */
-        .workout-list, .steps-list {
+        .workout-list, .steps-list, .meals-container {
             margin-top: 16px;
         }
-        .exercise-item, .step-item {
+        .exercise-item, .step-item, .meal-option {
             display: flex;
             align-items: flex-start;
             gap: 12px;
             padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-lighter);
         }
-        .exercise-name {
+        .exercise-name, .meal-text {
             font-weight: 500;
             flex: 1;
         }
-        .exercise-detail {
-            font-size: 13px;
-            color: #475569;
+        .meal-category {
+            font-weight: 700;
+            margin: 12px 0 4px;
+            color: var(--text-secondary);
         }
         .meal-block {
-            background: #fef9e6;
+            background: var(--meal-bg);
             padding: 12px;
             border-radius: 20px;
             margin: 12px 0;
-        }
-        .meal-name {
-            font-weight: 700;
-            margin-bottom: 4px;
         }
         .water-target {
             font-size: 24px;
@@ -181,18 +232,18 @@
             margin-top: 2px;
         }
         .rest-badge {
-            background: #e2e8f0;
+            background: var(--badge-bg);
             border-radius: 30px;
             padding: 4px 12px;
             font-size: 12px;
             font-weight: 600;
-            color: #334155;
+            color: var(--text-primary);
+            display: inline-block;
         }
-
         footer {
             text-align: center;
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin-top: 32px;
         }
         button.secondary {
@@ -204,15 +255,23 @@
             text-decoration: underline;
             cursor: pointer;
         }
+        .info-text {
+            background: var(--bg-body);
+            padding: 12px;
+            border-radius: 20px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
         @media (max-width: 480px) {
             body { padding: 16px 12px 30px; }
             .plan-card { padding: 16px; }
+            .tab-btn { font-size: 12px; padding: 8px 0; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- Streak + дата -->
+    <!-- Streak + дата + переключатель темы -->
     <div class="streak-card">
         <div class="streak-left">
             <div class="fire-icon">🔥</div>
@@ -221,14 +280,19 @@
                 <div class="streak-label">дней подряд</div>
             </div>
         </div>
-        <div class="date-badge" id="currentDateMSK"></div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="date-badge" id="currentDateMSK"></div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Сменить тему">🌙</button>
+        </div>
     </div>
 
-    <!-- Вкладки -->
+    <!-- Вкладки (добавлены креатин и протеин) -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="workout">🏋️ Тренировка</button>
         <button class="tab-btn" data-tab="nutrition">🍽️ Питание</button>
         <button class="tab-btn" data-tab="water">💧 Вода</button>
+        <button class="tab-btn" data-tab="creatine">💊 Креатин</button>
+        <button class="tab-btn" data-tab="protein">🥛 Протеин</button>
     </div>
 
     <!-- Динамический контент -->
@@ -240,257 +304,169 @@
 </div>
 
 <script>
-    // ---------- КОНФИГУРАЦИЯ НА ОСНОВЕ ТВОЕГО ПЛАНА ----------
-    // Дни недели: 0 - вс, 1 - пн, 2 - вт, 3 - ср, 4 - чт, 5 - пт, 6 - сб
+    // ---------- КОНФИГУРАЦИЯ ----------
     const WORKOUT_PLAN = {
-        1: { // ПН - силовой верх
-            name: "Силовой верх",
-            exercises: [
-                "Алмазные отжимания: 4 подхода × макс",
-                "Отжимания широким хватом: 4 × 12–15",
-                "«Пика» отжимания (ноги на возвышении): 3 × 10–12",
-                "Обратные отжимания от стула: 3 × 12–15",
-                "Супермен (удержание): 3 × 20–25 сек"
-            ],
-            steps: ["Разминка 5–10 мин (суставная гимнастика)", "Выполнить упражнения в темпе 3 сек вниз / 1 сек вверх", "Заминка: растяжка груди, спины, трицепса"]
-        },
-        2: { // ВТ - низ + кор
-            name: "Ноги + кор",
-            exercises: [
-                "Болгарские сплит-приседания: 3 × 8–10 (каждая нога)",
-                "Приседания с задержкой (2 сек внизу): 4 × 15–20",
-                "Выпады назад: 3 × 12 (каждая нога)",
-                "Ягодичный мостик на одной ноге: 3 × 12–15",
-                "Вакуум живота: 3 × 30 сек удержания"
-            ],
-            steps: ["Динамическая растяжка ног", "Следить за коленями (не заваливать внутрь)", "Заминка: выпады в статике"]
-        },
-        3: { // СР - отдых + растяжка
-            name: "Активное восстановление",
-            exercises: ["Растяжка всего тела 10–15 мин", "Дыхательная практика", "Мобилизация позвоночника"],
-            steps: ["Йога / мягкий стретчинг", "Покатать стопы мячиком", "Контрастный душ"]
-        },
-        4: { // ЧТ - круговая гипертрофия
-            name: "Круговая гипертрофия",
-            exercises: [
-                "Круг 1–3: Отжимания классические 20–25",
-                "Приседания с выпрыгиванием 15",
-                "Австралийская тяга (полотенце/простыня) 12–15",
-                "Бёрпи без отжимания 12–15",
-                "Планка с попеременным подъемом рук/ног 20 касаний",
-                "Отдых между кругами 2 мин"
-            ],
-            steps: ["Разогрев суставов", "Выполнить 3 круга с контролем пульса", "Растяжка после"]
-        },
-        5: { // ПТ - функциональная сила
-            name: "Функциональная сила + статика",
-            exercises: [
-                "Планка на прямых руках: 3 × 60–90 сек",
-                "Медленные негативные отжимания: 4 × 6–8",
-                "«Пистолетик» с опорой: 3 × 5–8 (каждая нога)",
-                "Ходьба в планке (медведь): 3 × 30 сек",
-                "Подъем таза с задержкой: 4 × 15 (пауза 3 сек)"
-            ],
-            steps: ["Суставная разминка 5 мин", "Выполнять негативные фазы медленно (5–7 сек)", "Статическая растяжка"]
-        },
-        6: { // СБ - активный отдых
-            name: "Активный отдых / кардио",
-            exercises: ["Ходьба 40–60 минут на свежем воздухе", "Легкая растяжка"],
-            steps: ["Обильное питье", "Не перегружать суставы"]
-        },
-        0: { // ВС - полный отдых
-            name: "Полный отдых",
-            exercises: ["Восстановление", "Качественный сон", "Питание по плану"],
-            steps: ["Массаж (роллер) при желании", "Подготовка к новой неделе"]
-        }
+        1: { name: "Силовой верх", exercises: ["Алмазные отжимания: 4 подхода × макс", "Отжимания широким хватом: 4 × 12–15", "«Пика» отжимания (ноги на возвышении): 3 × 10–12", "Обратные отжимания от стула: 3 × 12–15", "Супермен (удержание): 3 × 20–25 сек"], steps: ["Разминка 5–10 мин (суставная гимнастика)", "Выполнить упражнения в темпе 3 сек вниз / 1 сек вверх", "Заминка: растяжка груди, спины, трицепса"] },
+        2: { name: "Ноги + кор", exercises: ["Болгарские сплит-приседания: 3 × 8–10 (каждая нога)", "Приседания с задержкой (2 сек внизу): 4 × 15–20", "Выпады назад: 3 × 12 (каждая нога)", "Ягодичный мостик на одной ноге: 3 × 12–15", "Вакуум живота: 3 × 30 сек удержания"], steps: ["Динамическая растяжка ног", "Следить за коленями (не заваливать внутрь)", "Заминка: выпады в статике"] },
+        3: { name: "Активное восстановление", exercises: ["Растяжка всего тела 10–15 мин", "Дыхательная практика", "Мобилизация позвоночника"], steps: ["Йога / мягкий стретчинг", "Покатать стопы мячиком", "Контрастный душ"] },
+        4: { name: "Круговая гипертрофия", exercises: ["Круг 1–3: Отжимания классические 20–25", "Приседания с выпрыгиванием 15", "Австралийская тяга (полотенце/простыня) 12–15", "Бёрпи без отжимания 12–15", "Планка с попеременным подъемом рук/ног 20 касаний", "Отдых между кругами 2 мин"], steps: ["Разогрев суставов", "Выполнить 3 круга с контролем пульса", "Растяжка после"] },
+        5: { name: "Функциональная сила + статика", exercises: ["Планка на прямых руках: 3 × 60–90 сек", "Медленные негативные отжимания: 4 × 6–8", "«Пистолетик» с опорой: 3 × 5–8 (каждая нога)", "Ходьба в планке (медведь): 3 × 30 сек", "Подъем таза с задержкой: 4 × 15 (пауза 3 сек)"], steps: ["Суставная разминка 5 мин", "Выполнять негативные фазы медленно (5–7 сек)", "Статическая растяжка"] },
+        6: { name: "Активный отдых / кардио", exercises: ["Ходьба 40–60 минут на свежем воздухе", "Легкая растяжка"], steps: ["Обильное питье", "Не перегружать суставы"] },
+        0: { name: "Полный отдых", exercises: ["Восстановление", "Качественный сон", "Питание по плану"], steps: ["Массаж (роллер) при желании", "Подготовка к новой неделе"] }
     };
 
-    // Питание (единое на все дни)
-    const NUTRITION_PLAN = {
-        meals: [
-            { name: "Завтрак", text: "Овсянка (на воде/молоке) + 2 яйца + банан / ягоды", kcal: "≈550 ккал" },
-            { name: "Обед", text: "Гречка/рис (80г сухих) + куриное филе 200г + овощи", kcal: "≈700 ккал" },
-            { name: "Перекус", text: "Творог 5–9% (200г) + мед / горсть орехов", kcal: "≈380 ккал" },
-            { name: "Ужин", text: "Рыба (200г) + тушеные овощи / омлет из 4 яиц", kcal: "≈550 ккал" }
-        ],
-        steps: ["Приготовить завтрак до 9:00", "Контроль порций (белок + сложные углеводы)", "Не пропускать перекус", "Ужин за 2–3 часа до сна"]
+    // Расширенное питание: несколько вариантов на каждый приём
+    const NUTRITION_OPTIONS = {
+        breakfast: { title: "Завтрак", options: ["Овсянка + 2 яйца + банан/ягоды (~550 ккал)", "Творог 5% с ягодами + цельнозерновой тост (~480 ккал)", "Яичница из 3 яиц с овощами + хлеб (~520 ккал)"] },
+        lunch: { title: "Обед", options: ["Гречка (80г сухих) + куриное филе 200г + овощи (~700 ккал)", "Рис + тунец в собственном соку + салат (~680 ккал)", "Макароны из твердых сортов + говяжий фарш (~750 ккал)"] },
+        snack: { title: "Перекус", options: ["Творог 5–9% (200г) + мед/орехи (~380 ккал)", "Фрукты + йогурт натуральный (~220 ккал)", "Протеиновый батончик + яблоко (~300 ккал)"] },
+        dinner: { title: "Ужин", options: ["Рыба (200г) + тушеные овощи (~550 ккал)", "Омлет из 4 яиц + сыр + салат (~560 ккал)", "Куриная грудка + гречка (легкая порция) (~520 ккал)"] }
     };
+    const NUTRITION_STEPS = ["Приготовить завтрак до 9:00", "Контроль порций (белок + сложные углеводы)", "Не пропускать перекус", "Ужин за 2–3 часа до сна"];
 
-    const WATER_TARGET = 2500; // мл
+    const WATER_TARGET = 2500;
     const WATER_STEPS = ["Выпить стакан воды сразу после пробуждения", "Пить по 200–300 мл каждые 1–1.5 часа", "Следить за цветом мочи (светлый)"];
-    
-    // Определение текущего дня по МСК
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
     function getMoscowDay() {
         const now = new Date();
         const mskDate = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
-        const dayOfWeek = mskDate.getDay(); // 0 воскр ... 6 субб
+        const dayOfWeek = mskDate.getDay();
         const yyyy = mskDate.getFullYear();
         const mm = String(mskDate.getMonth() + 1).padStart(2, '0');
         const dd = String(mskDate.getDate()).padStart(2, '0');
         return { dayOfWeek, dateStr: `${yyyy}-${mm}-${dd}`, mskDate };
     }
 
-    // Хранилище: completedData { "2025-03-25": { workout: bool, nutrition: bool, water: bool } }
     let completedData = {};
-    // Для отображения текущих чекбоксов
     let currentTab = "workout";
 
-    // Получить данные из localStorage
     function loadStorage() {
         const saved = localStorage.getItem("fitnessTrackerData");
         if (saved) {
-            try {
-                completedData = JSON.parse(saved);
-            } catch(e) { completedData = {}; }
+            try { completedData = JSON.parse(saved); } catch(e) { completedData = {}; }
         }
         if (!completedData) completedData = {};
     }
+    function saveStorage() { localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData)); }
 
-    function saveStorage() {
-        localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData));
-    }
-
-    // Получить статус выполнения для конкретного дня
     function getDayStatus(dateStr) {
         if (!completedData[dateStr]) {
-            completedData[dateStr] = { workout: false, nutrition: false, water: false };
+            completedData[dateStr] = { workout: false, nutrition: false, water: false, workoutExercises: {}, nutritionMeals: {}, creatineMorning: false, creatineEvening: false };
             saveStorage();
         }
         return completedData[dateStr];
     }
 
-    // Обновить чекбокс
     function updateCheck(category, checked, dateStr) {
         if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
         completedData[dateStr][category] = checked;
         saveStorage();
-        updateStreakAndUI(); // пересчет огонька и обновление интерфейса
+        updateStreakAndUI();
     }
 
-    // Является ли день тренировочным (только для обязательной галочки)
-    function isWorkoutRequired(dayOfWeek) {
-        // пн(1), вт(2), чт(4), пт(5) — обязательные силовые. ср(3), сб(6), вс(0) — отдых/не обязательно
-        return [1,2,4,5].includes(dayOfWeek);
-    }
+    function isWorkoutRequired(dayOfWeek) { return [1,2,4,5].includes(dayOfWeek); }
 
-    // Подсчет непрерывной серии (стрейк)
     function computeStreak() {
         const todayMSK = getMoscowDay();
-        const todayStr = todayMSK.dateStr;
-        // Проверяем, выполнен ли сегодняшний день (все требуемые пункты)
-        // Чтобы серия считалась живой, сегодня может быть еще не выполнен, но серия считается по вчерашнему дню и назад
-        // Алгоритм: идем от today назад, пока дни подряд выполнены (с учетом обязательности тренировки)
         let streak = 0;
-        let checkDate = new Date(todayMSK.mskDate);
-        // Проверяем сегодня отдельно? Для отображения серии мы считаем завершённые полные дни в прошлом,
-        // но часто серия показывает количество дней ПОДРЯД, включая сегодняшний, если он уже выполнен.
-        // Реализуем: идём от сегодня назад, пока каждый день был полностью выполнен (с учётом выходных)
-        // Для сегодняшнего дня: если он уже полностью выполнен — учитываем в серии, иначе серия = кол-во полных предыдущих дней.
         let currentDate = new Date(todayMSK.mskDate);
         while (true) {
             const yyyy = currentDate.getFullYear();
             const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
             const dd = String(currentDate.getDate()).padStart(2, '0');
             const dateStr = `${yyyy}-${mm}-${dd}`;
-            const dayOfWeek = currentDate.getDay(); // 0-6
+            const dayOfWeek = currentDate.getDay();
             const status = completedData[dateStr];
-            if (!status) break; // нет данных - серия прервана
-            
+            if (!status) break;
             let dayComplete = true;
-            // проверим воду всегда, питание всегда
             if (!status.nutrition || !status.water) dayComplete = false;
-            // тренировка: только если обязательна
             if (isWorkoutRequired(dayOfWeek) && !status.workout) dayComplete = false;
-            // если день отдыха (не обязательная тренировка) и нет галочки workout - все равно ок, только если питание+вода в порядке
-            
             if (!dayComplete) break;
             streak++;
-            // двигаемся на день назад
             currentDate.setDate(currentDate.getDate() - 1);
-            // защита от бесконечности
             if (streak > 500) break;
         }
         return streak;
     }
 
-    // обновить отображение стрейка и перерисовать активную вкладку
     function updateStreakAndUI() {
-        const streak = computeStreak();
-        document.getElementById("streakCount").innerText = streak;
+        document.getElementById("streakCount").innerText = computeStreak();
         renderCurrentTab();
     }
 
-    // отрисовка активной вкладки с данными дня
+    // ----- ОТРИСОВКА ВКЛАДОК -----
     function renderCurrentTab() {
         const { dayOfWeek, dateStr } = getMoscowDay();
         const dayStatus = getDayStatus(dateStr);
         const workoutRequired = isWorkoutRequired(dayOfWeek);
-        const workoutPlan = WORKOUT_PLAN[dayOfWeek] || WORKOUT_PLAN[0]; // fallback воскресенье
-        
+        const workoutPlan = WORKOUT_PLAN[dayOfWeek] || WORKOUT_PLAN[0];
         const container = document.getElementById("tabContent");
         if (!container) return;
-        
+
         if (currentTab === "workout") {
-            // карточка тренировки
-            let workoutChecked = dayStatus.workout;
-            let disabledAttr = "";
-            let restNote = "";
-            if (!workoutRequired) {
-                restNote = `<div class="rest-badge" style="margin-bottom: 12px;">🔁 Сегодня восстановление / выходной — галочка необязательна для огонька, но отмечай, если выполнил</div>`;
-            }
-            let exercisesHtml = workoutPlan.exercises.map(ex => `<div class="exercise-item"><div class="exercise-name">${ex}</div></div>`).join("");
+            let restNote = !workoutRequired ? `<div class="rest-badge" style="margin-bottom:12px;">🔁 Сегодня восстановление — галочка необязательна для огонька</div>` : "";
+            let exercisesHtml = workoutPlan.exercises.map((ex, idx) => {
+                let isChecked = dayStatus.workoutExercises?.[idx] || false;
+                return `<div class="exercise-item">
+                            <input type="checkbox" class="step-check" data-exercise-idx="${idx}" ${isChecked ? 'checked' : ''}>
+                            <div class="exercise-name">${ex}</div>
+                        </div>`;
+            }).join("");
             let stepsHtml = (workoutPlan.steps || []).map((step, idx) => `
                 <div class="step-item">
                     <input type="checkbox" class="step-check" data-step-workout="${idx}" ${dayStatus[`workout_step_${idx}`] ? 'checked' : ''}>
                     <span>${step}</span>
                 </div>
             `).join("");
-            
             const html = `
                 <div class="plan-card">
                     <div class="plan-header">
                         <div class="plan-title"><span>🏋️</span> ${workoutPlan.name}</div>
                         <div class="daily-check">
                             <label>Выполнено</label>
-                            <input type="checkbox" id="workoutCheckbox" ${workoutChecked ? 'checked' : ''} ${!workoutRequired ? 'data-nonrequired="true"' : ''}>
+                            <input type="checkbox" id="workoutCheckbox" ${dayStatus.workout ? 'checked' : ''}>
                         </div>
                     </div>
                     ${restNote}
-                    <div class="workout-list">
-                        ${exercisesHtml}
-                    </div>
-                    <div style="margin-top: 20px;"><strong>📋 Шаги действий:</strong></div>
-                    <div class="steps-list" id="workoutStepsList">
-                        ${stepsHtml || '<div class="step-item">Выполни активность по самочувствию</div>'}
-                    </div>
-                </div>
-            `;
+                    <div class="workout-list">${exercisesHtml}</div>
+                    <div style="margin-top:20px;"><strong>📋 Шаги действий:</strong></div>
+                    <div class="steps-list">${stepsHtml}</div>
+                </div>`;
             container.innerHTML = html;
-            const chk = document.getElementById("workoutCheckbox");
-            if (chk) {
-                chk.addEventListener("change", (e) => {
-                    updateCheck("workout", e.target.checked, dateStr);
+            document.getElementById("workoutCheckbox")?.addEventListener("change", (e) => updateCheck("workout", e.target.checked, dateStr));
+            document.querySelectorAll("[data-exercise-idx]").forEach(cb => {
+                cb.addEventListener("change", (e) => {
+                    let idx = parseInt(e.target.dataset.exerciseIdx);
+                    if (!completedData[dateStr]) completedData[dateStr] = {};
+                    if (!completedData[dateStr].workoutExercises) completedData[dateStr].workoutExercises = {};
+                    completedData[dateStr].workoutExercises[idx] = e.target.checked;
+                    saveStorage();
                 });
-            }
-            // обработка шагов (локально, не влияет на основной стрейк, но сохраняем в localStorage для настроения)
+            });
             document.querySelectorAll("[data-step-workout]").forEach((cb, idx) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
+                    if (!completedData[dateStr]) completedData[dateStr] = {};
                     completedData[dateStr][`workout_step_${idx}`] = e.target.checked;
                     saveStorage();
                 });
-                // инициализация
                 if (dayStatus[`workout_step_${idx}`] !== undefined) cb.checked = dayStatus[`workout_step_${idx}`];
             });
         } 
         else if (currentTab === "nutrition") {
-            let mealsHtml = NUTRITION_PLAN.meals.map(m => `
-                <div class="meal-block">
-                    <div class="meal-name">${m.name} · ${m.kcal}</div>
-                    <div style="font-size:14px;">${m.text}</div>
-                </div>
-            `).join("");
-            let stepsHtml = NUTRITION_PLAN.steps.map((step, i) => `
+            let mealsHtml = "";
+            for (const [key, meal] of Object.entries(NUTRITION_OPTIONS)) {
+                mealsHtml += `<div class="meal-category">🍴 ${meal.title}</div>`;
+                meal.options.forEach((opt, idx) => {
+                    let optId = `${key}_${idx}`;
+                    let isChecked = dayStatus.nutritionMeals?.[optId] || false;
+                    mealsHtml += `<div class="meal-option">
+                                    <input type="checkbox" class="step-check" data-meal-opt="${optId}" ${isChecked ? 'checked' : ''}>
+                                    <div class="meal-text">${opt}</div>
+                                </div>`;
+                });
+            }
+            let stepsHtml = NUTRITION_STEPS.map((step, i) => `
                 <div class="step-item">
                     <input type="checkbox" class="step-check" data-nutrition-step="${i}" ${dayStatus[`nutrition_step_${i}`] ? 'checked' : ''}>
                     <span>${step}</span>
@@ -505,27 +481,32 @@
                             <input type="checkbox" id="nutritionCheckbox" ${dayStatus.nutrition ? 'checked' : ''}>
                         </div>
                     </div>
-                    ${mealsHtml}
-                    <div style="margin-top: 20px;"><strong>📋 Шаги действий:</strong></div>
+                    <div class="meals-container">${mealsHtml}</div>
+                    <div style="margin-top:20px;"><strong>📋 Шаги действий:</strong></div>
                     <div class="steps-list">${stepsHtml}</div>
-                </div>
-            `;
+                </div>`;
             container.innerHTML = html;
-            document.getElementById("nutritionCheckbox")?.addEventListener("change", (e) => {
-                updateCheck("nutrition", e.target.checked, dateStr);
+            document.getElementById("nutritionCheckbox")?.addEventListener("change", (e) => updateCheck("nutrition", e.target.checked, dateStr));
+            document.querySelectorAll("[data-meal-opt]").forEach(cb => {
+                cb.addEventListener("change", (e) => {
+                    let optId = e.target.dataset.mealOpt;
+                    if (!completedData[dateStr]) completedData[dateStr] = {};
+                    if (!completedData[dateStr].nutritionMeals) completedData[dateStr].nutritionMeals = {};
+                    completedData[dateStr].nutritionMeals[optId] = e.target.checked;
+                    saveStorage();
+                });
             });
             document.querySelectorAll("[data-nutrition-step]").forEach((cb, i) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
+                    if (!completedData[dateStr]) completedData[dateStr] = {};
                     completedData[dateStr][`nutrition_step_${i}`] = e.target.checked;
                     saveStorage();
                 });
                 if (dayStatus[`nutrition_step_${i}`] !== undefined) cb.checked = dayStatus[`nutrition_step_${i}`];
             });
-        } 
+        }
         else if (currentTab === "water") {
             let currentWaterMl = dayStatus.waterMl || 0;
-            const percent = Math.min(100, Math.floor((currentWaterMl / WATER_TARGET) * 100));
             let stepsHtml = WATER_STEPS.map((step, i) => `
                 <div class="step-item">
                     <input type="checkbox" class="step-check" data-water-step="${i}" ${dayStatus[`water_step_${i}`] ? 'checked' : ''}>
@@ -544,19 +525,17 @@
                     <div class="water-target">💧 ${currentWaterMl} / ${WATER_TARGET} мл</div>
                     <input type="range" min="0" max="${WATER_TARGET}" step="100" value="${currentWaterMl}" id="waterSlider" style="width:100%; margin: 8px 0;">
                     <div style="display:flex; gap:8px; margin: 10px 0;">
-                        <button id="add200" style="flex:1; background:#fee2e2; border:none; padding:8px; border-radius:40px;">+200 мл</button>
-                        <button id="add500" style="flex:1; background:#fed7aa; border:none; padding:8px; border-radius:40px;">+500 мл</button>
-                        <button id="resetWater" style="flex:1; background:#e2e8f0; border:none; padding:8px; border-radius:40px;">Сброс</button>
+                        <button id="add200" style="flex:1; background:var(--btn-add200); border:none; padding:8px; border-radius:40px;">+200 мл</button>
+                        <button id="add500" style="flex:1; background:var(--btn-add500); border:none; padding:8px; border-radius:40px;">+500 мл</button>
+                        <button id="resetWater" style="flex:1; background:var(--btn-secondary); border:none; padding:8px; border-radius:40px;">Сброс</button>
                     </div>
-                    <div style="margin-top: 20px;"><strong>📋 Шаги:</strong></div>
                     <div class="steps-list">${stepsHtml}</div>
-                </div>
-            `;
+                </div>`;
             container.innerHTML = html;
             const slider = document.getElementById("waterSlider");
             const waterCheck = document.getElementById("waterCheckbox");
             const updateWater = (val) => {
-                if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
+                if (!completedData[dateStr]) completedData[dateStr] = {};
                 const newVal = Math.min(WATER_TARGET, Math.max(0, val));
                 completedData[dateStr].waterMl = newVal;
                 const waterCompleted = newVal >= WATER_TARGET;
@@ -564,48 +543,105 @@
                 if (waterCheck) waterCheck.checked = waterCompleted;
                 saveStorage();
                 updateStreakAndUI();
-                renderCurrentTab(); // обновляем слайдер значения
+                renderCurrentTab();
             };
             if (slider) slider.addEventListener("input", (e) => updateWater(parseInt(e.target.value)));
             document.getElementById("add200")?.addEventListener("click", () => updateWater((completedData[dateStr]?.waterMl || 0) + 200));
             document.getElementById("add500")?.addEventListener("click", () => updateWater((completedData[dateStr]?.waterMl || 0) + 500));
             document.getElementById("resetWater")?.addEventListener("click", () => updateWater(0));
-            if (waterCheck) waterCheck.addEventListener("change", (e) => {
-                // если вручную ставят галочку, выставляем цель полной
-                if (e.target.checked) updateWater(WATER_TARGET);
-                else updateWater(0);
-            });
+            if (waterCheck) waterCheck.addEventListener("change", (e) => { if (e.target.checked) updateWater(WATER_TARGET); else updateWater(0); });
             document.querySelectorAll("[data-water-step]").forEach((cb, i) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
+                    if (!completedData[dateStr]) completedData[dateStr] = {};
                     completedData[dateStr][`water_step_${i}`] = e.target.checked;
                     saveStorage();
                 });
                 if (dayStatus[`water_step_${i}`] !== undefined) cb.checked = dayStatus[`water_step_${i}`];
             });
         }
+        else if (currentTab === "creatine") {
+            const morningChecked = dayStatus.creatineMorning || false;
+            const eveningChecked = dayStatus.creatineEvening || false;
+            const html = `
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-title"><span>💊</span> Креатин моногидрат</div>
+                    </div>
+                    <div class="info-text">
+                        📌 Рекомендация: 5–10 г в день (0.1 г/кг). Утром и вечером. В дни отдыха также принимать.<br>
+                        🧪 Фаза загрузки (первые 5–7 дней): 20 г/день, затем поддерживающая.
+                    </div>
+                    <div class="exercise-item">
+                        <input type="checkbox" id="creatineMorning" ${morningChecked ? 'checked' : ''}>
+                        <label>🌅 Утренний приём (5 г)</label>
+                    </div>
+                    <div class="exercise-item">
+                        <input type="checkbox" id="creatineEvening" ${eveningChecked ? 'checked' : ''}>
+                        <label>🌙 Вечерний приём (5 г)</label>
+                    </div>
+                    <div class="info-text" style="margin-top:16px;">
+                        💡 Пей больше воды (2–3 л в день) для лучшего усвоения.
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+            document.getElementById("creatineMorning")?.addEventListener("change", (e) => {
+                if (!completedData[dateStr]) completedData[dateStr] = {};
+                completedData[dateStr].creatineMorning = e.target.checked;
+                saveStorage();
+            });
+            document.getElementById("creatineEvening")?.addEventListener("change", (e) => {
+                if (!completedData[dateStr]) completedData[dateStr] = {};
+                completedData[dateStr].creatineEvening = e.target.checked;
+                saveStorage();
+            });
+        }
+        else if (currentTab === "protein") {
+            const html = `
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-title"><span>🥛</span> Протеин</div>
+                    </div>
+                    <div class="info-text">
+                        ⏳ Раздел в разработке. Здесь будет план приёма протеина, дозировки и рекомендации.
+                    </div>
+                </div>`;
+            container.innerHTML = html;
+        }
     }
 
-    // отображение даты в шапке
     function updateDateDisplay() {
         const { mskDate } = getMoscowDay();
         const formatted = mskDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', timeZone: 'Europe/Moscow' });
         document.getElementById("currentDateMSK").innerText = formatted;
     }
 
-    // инициализация: слушаем смену дня (каждую минуту проверяем, не сменилась ли дата)
+    // ----- ТЕМНАЯ ТЕМА -----
+    function initTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const isDark = savedTheme === "dark" || (savedTheme === null && prefersDark);
+        if (isDark) document.body.classList.add("dark");
+        const toggleBtn = document.getElementById("themeToggle");
+        toggleBtn.textContent = isDark ? "☀️" : "🌙";
+        toggleBtn.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            const nowDark = document.body.classList.contains("dark");
+            localStorage.setItem("theme", nowDark ? "dark" : "light");
+            toggleBtn.textContent = nowDark ? "☀️" : "🌙";
+        });
+    }
+
+    // ----- ИНИЦИАЛИЗАЦИЯ -----
     let lastDateStr = null;
     function checkDateChange() {
         const { dateStr } = getMoscowDay();
         if (lastDateStr && lastDateStr !== dateStr) {
-            // дата изменилась — принудительно обновляем UI (галочки сбросятся логически через getDayStatus, т.к. новый день)
             updateStreakAndUI();
             updateDateDisplay();
         }
         lastDateStr = dateStr;
     }
 
-    // обработка вкладок
     function bindTabs() {
         document.querySelectorAll(".tab-btn").forEach(btn => {
             btn.addEventListener("click", () => {
@@ -616,25 +652,20 @@
             });
         });
     }
-    
-    // запуск
+
     function init() {
         loadStorage();
         bindTabs();
         updateDateDisplay();
         updateStreakAndUI();
-        setInterval(() => {
-            checkDateChange();
-            updateDateDisplay();
-        }, 60000);
-        // первоначальная дата
+        setInterval(() => { checkDateChange(); updateDateDisplay(); }, 60000);
         const { dateStr } = getMoscowDay();
         lastDateStr = dateStr;
-        // если нет данных для сегодня, инициализируем
         if (!completedData[dateStr]) {
-            completedData[dateStr] = { workout: false, nutrition: false, water: false };
+            completedData[dateStr] = { workout: false, nutrition: false, water: false, workoutExercises: {}, nutritionMeals: {}, creatineMorning: false, creatineEvening: false };
             saveStorage();
         }
+        initTheme();
         updateStreakAndUI();
     }
     init();
