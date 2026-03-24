@@ -186,7 +186,7 @@
             cursor: pointer;
         }
 
-        .steps-list, .workout-list, .meals-container {
+        .steps-list, .workout-list, .meals-container, .profile-selector {
             margin-top: 16px;
         }
         .exercise-item, .step-item, .meal-option {
@@ -205,12 +205,6 @@
             margin: 12px 0 4px;
             color: var(--text-secondary);
         }
-        .meal-block {
-            background: var(--meal-bg);
-            padding: 12px;
-            border-radius: 20px;
-            margin: 12px 0;
-        }
         .water-target {
             font-size: 24px;
             font-weight: 800;
@@ -222,7 +216,7 @@
             height: 18px;
             margin-top: 2px;
         }
-        .rest-badge, .dev-badge {
+        .rest-badge {
             background: var(--badge-bg);
             border-radius: 30px;
             padding: 4px 12px;
@@ -230,6 +224,19 @@
             font-weight: 600;
             color: var(--text-primary);
             display: inline-block;
+        }
+        .profile-option {
+            background: var(--bg-body);
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .profile-option.selected {
+            border-color: #f97316;
+            background: var(--card-bg);
         }
         footer {
             text-align: center;
@@ -243,12 +250,6 @@
             border-radius: 20px;
             margin: 12px 0;
             font-size: 14px;
-        }
-        .workout-summary {
-            background: var(--bg-body);
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
         }
         @media (max-width: 480px) {
             body { padding: 16px 12px 30px; }
@@ -274,7 +275,7 @@
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" data-tab="home">🏠 Главная</button>
+        <button class="tab-btn active" data-tab="home">🏠 Выбор профиля</button>
         <button class="tab-btn" data-tab="workout">🏋️ Тренировка</button>
         <button class="tab-btn" data-tab="nutrition">🍽️ Питание</button>
         <button class="tab-btn" data-tab="water">💧 Вода</button>
@@ -283,21 +284,39 @@
     </div>
 
     <div id="tabContent"></div>
-    <footer>⚡ Галочки сбрасываются в полночь МСК<br>✅ Для огонька нужны: тренировка (если в плане), питание и вода</footer>
+    <footer>⚡ Галочки сбрасываются в полночь МСК<br>✅ Для огонька нужны: тренировка (если обязательна), питание и вода</footer>
 </div>
 
 <script>
-    // ---------- КОНФИГУРАЦИЯ ----------
-    const WORKOUT_PLAN = {
-        1: { name: "Силовой верх", exercises: ["Алмазные отжимания: 4 подхода × макс", "Отжимания широким хватом: 4 × 12–15", "«Пика» отжимания (ноги на возвышении): 3 × 10–12", "Обратные отжимания от стула: 3 × 12–15", "Супермен (удержание): 3 × 20–25 сек"], steps: ["Разминка 5–10 мин (суставная гимнастика)", "Выполнить упражнения в темпе 3 сек вниз / 1 сек вверх", "Заминка: растяжка груди, спины, трицепса"] },
-        2: { name: "Ноги + кор", exercises: ["Болгарские сплит-приседания: 3 × 8–10 (каждая нога)", "Приседания с задержкой (2 сек внизу): 4 × 15–20", "Выпады назад: 3 × 12 (каждая нога)", "Ягодичный мостик на одной ноге: 3 × 12–15", "Вакуум живота: 3 × 30 сек удержания"], steps: ["Динамическая растяжка ног", "Следить за коленями (не заваливать внутрь)", "Заминка: выпады в статике"] },
-        3: { name: "Активное восстановление", exercises: ["Растяжка всего тела 10–15 мин", "Дыхательная практика", "Мобилизация позвоночника"], steps: ["Йога / мягкий стретчинг", "Покатать стопы мячиком", "Контрастный душ"] },
-        4: { name: "Круговая гипертрофия", exercises: ["Круг 1–3: Отжимания классические 20–25", "Приседания с выпрыгиванием 15", "Австралийская тяга (полотенце/простыня) 12–15", "Бёрпи без отжимания 12–15", "Планка с попеременным подъемом рук/ног 20 касаний", "Отдых между кругами 2 мин"], steps: ["Разогрев суставов", "Выполнить 3 круга с контролем пульса", "Растяжка после"] },
-        5: { name: "Функциональная сила + статика", exercises: ["Планка на прямых руках: 3 × 60–90 сек", "Медленные негативные отжимания: 4 × 6–8", "«Пистолетик» с опорой: 3 × 5–8 (каждая нога)", "Ходьба в планке (медведь): 3 × 30 сек", "Подъем таза с задержкой: 4 × 15 (пауза 3 сек)"], steps: ["Суставная разминка 5 мин", "Выполнять негативные фазы медленно (5–7 сек)", "Статическая растяжка"] },
-        6: { name: "Активный отдых / кардио", exercises: ["Ходьба 40–60 минут на свежем воздухе", "Легкая растяжка"], steps: ["Обильное питье", "Не перегружать суставы"] },
-        0: { name: "Полный отдых", exercises: ["Восстановление", "Качественный сон", "Питание по плану"], steps: ["Массаж (роллер) при желании", "Подготовка к новой неделе"] }
+    // ---------- ПРОФИЛИ ТРЕНИРОВОК ----------
+    const PROFILES = {
+        base: {
+            name: "Базовая тренировка (по расписанию)",
+            schedule: {
+                1: { name: "Силовой верх", exercises: ["Алмазные отжимания: 4 подхода × макс", "Отжимания широким хватом: 4 × 12–15", "«Пика» отжимания (ноги на возвышении): 3 × 10–12", "Обратные отжимания от стула: 3 × 12–15", "Супермен (удержание): 3 × 20–25 сек"], steps: ["Разминка 5–10 мин (суставная гимнастика)", "Выполнить упражнения в темпе 3 сек вниз / 1 сек вверх", "Заминка: растяжка груди, спины, трицепса"] },
+                2: { name: "Ноги + кор", exercises: ["Болгарские сплит-приседания: 3 × 8–10 (каждая нога)", "Приседания с задержкой (2 сек внизу): 4 × 15–20", "Выпады назад: 3 × 12 (каждая нога)", "Ягодичный мостик на одной ноге: 3 × 12–15", "Вакуум живота: 3 × 30 сек удержания"], steps: ["Динамическая растяжка ног", "Следить за коленями (не заваливать внутрь)", "Заминка: выпады в статике"] },
+                3: { name: "Активное восстановление", exercises: ["Растяжка всего тела 10–15 мин", "Дыхательная практика", "Мобилизация позвоночника"], steps: ["Йога / мягкий стретчинг", "Покатать стопы мячиком", "Контрастный душ"] },
+                4: { name: "Круговая гипертрофия", exercises: ["Круг 1–3: Отжимания классические 20–25", "Приседания с выпрыгиванием 15", "Австралийская тяга (полотенце/простыня) 12–15", "Бёрпи без отжимания 12–15", "Планка с попеременным подъемом рук/ног 20 касаний", "Отдых между кругами 2 мин"], steps: ["Разогрев суставов", "Выполнить 3 круга с контролем пульса", "Растяжка после"] },
+                5: { name: "Функциональная сила + статика", exercises: ["Планка на прямых руках: 3 × 60–90 сек", "Медленные негативные отжимания: 4 × 6–8", "«Пистолетик» с опорой: 3 × 5–8 (каждая нога)", "Ходьба в планке (медведь): 3 × 30 сек", "Подъем таза с задержкой: 4 × 15 (пауза 3 сек)"], steps: ["Суставная разминка 5 мин", "Выполнять негативные фазы медленно (5–7 сек)", "Статическая растяжка"] },
+                6: { name: "Активный отдых / кардио", exercises: ["Ходьба 40–60 минут на свежем воздухе", "Легкая растяжка"], steps: ["Обильное питье", "Не перегружать суставы"] },
+                0: { name: "Полный отдых", exercises: ["Восстановление", "Качественный сон", "Питание по плану"], steps: ["Массаж (роллер) при желании", "Подготовка к новой неделе"] }
+            }
+        },
+        alternative: {
+            name: "Альтернативная тренировка (в разработке)",
+            schedule: {
+                1: { name: "Альт. верх", exercises: ["Упражнение A1", "Упражнение A2"], steps: ["Шаг 1", "Шаг 2"] },
+                2: { name: "Альт. низ", exercises: ["Упражнение B1", "Упражнение B2"], steps: ["Шаг 1", "Шаг 2"] },
+                3: { name: "Альт. отдых", exercises: ["Растяжка"], steps: ["Отдых"] },
+                4: { name: "Альт. круг", exercises: ["Круг 1", "Круг 2"], steps: ["Разминка"] },
+                5: { name: "Альт. сила", exercises: ["Статика"], steps: ["Подготовка"] },
+                6: { name: "Альт. кардио", exercises: ["Ходьба"], steps: ["Питье"] },
+                0: { name: "Альт. отдых", exercises: ["Полный отдых"], steps: ["Сон"] }
+            }
+        }
     };
 
+    // Питание
     const NUTRITION_OPTIONS = {
         breakfast: { title: "Завтрак", options: ["Овсянка + 2 яйца + банан/ягоды (~550 ккал)", "Творог 5% с ягодами + цельнозерновой тост (~480 ккал)", "Яичница из 3 яиц с овощами + хлеб (~520 ккал)"] },
         lunch: { title: "Обед", options: ["Гречка (80г сухих) + куриное филе 200г + овощи (~700 ккал)", "Рис + тунец в собственном соку + салат (~680 ккал)", "Макароны из твердых сортов + говяжий фарш (~750 ккал)"] },
@@ -322,6 +341,7 @@
 
     let completedData = {};
     let currentTab = "home";
+    let currentProfile = "base";
 
     function loadStorage() {
         const saved = localStorage.getItem("fitnessTrackerData");
@@ -329,22 +349,23 @@
             try { completedData = JSON.parse(saved); } catch(e) { completedData = {}; }
         }
         if (!completedData) completedData = {};
+        const savedProfile = localStorage.getItem("selectedProfile");
+        if (savedProfile && PROFILES[savedProfile]) currentProfile = savedProfile;
     }
     function saveStorage() { localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData)); }
+    function saveProfile() { localStorage.setItem("selectedProfile", currentProfile); }
 
     function getDayStatus(dateStr) {
         if (!completedData[dateStr]) {
-            completedData[dateStr] = { workout: false, nutrition: false, water: false, workoutExercises: {}, nutritionMeals: {}, creatineMorning: false, creatineEvening: false };
+            completedData[dateStr] = { 
+                workout: false, nutrition: false, water: false, 
+                workoutExercises: {}, nutritionMeals: {}, 
+                creatineMorning: false, creatineEvening: false,
+                waterMl: 0
+            };
             saveStorage();
         }
         return completedData[dateStr];
-    }
-
-    function updateCheck(category, checked, dateStr) {
-        if (!completedData[dateStr]) completedData[dateStr] = { workout: false, nutrition: false, water: false };
-        completedData[dateStr][category] = checked;
-        saveStorage();
-        updateStreakAndUI();
     }
 
     function isWorkoutRequired(dayOfWeek) { return [1,2,4,5].includes(dayOfWeek); }
@@ -377,88 +398,120 @@
         renderCurrentTab();
     }
 
-    // Функция для автоматической отметки всех чекбоксов тренировки
+    // Получить план тренировки на сегодня по выбранному профилю
+    function getCurrentWorkoutPlan() {
+        const { dayOfWeek } = getMoscowDay();
+        const profile = PROFILES[currentProfile];
+        if (!profile) return PROFILES.base.schedule[dayOfWeek] || PROFILES.base.schedule[0];
+        return profile.schedule[dayOfWeek] || profile.schedule[0];
+    }
+
+    // Автоматическая установка всех чекбоксов тренировки
     function setWorkoutAllChecks(dateStr, checked) {
         const dayStatus = getDayStatus(dateStr);
-        // Отмечаем общую галочку
+        const plan = getCurrentWorkoutPlan();
         dayStatus.workout = checked;
-        // Отмечаем каждое упражнение
-        const workoutPlan = WORKOUT_PLAN[getMoscowDay().dayOfWeek] || WORKOUT_PLAN[0];
-        if (workoutPlan.exercises) {
+        if (plan.exercises) {
             if (!dayStatus.workoutExercises) dayStatus.workoutExercises = {};
-            workoutPlan.exercises.forEach((_, idx) => { dayStatus.workoutExercises[idx] = checked; });
+            plan.exercises.forEach((_, idx) => { dayStatus.workoutExercises[idx] = checked; });
         }
-        // Отмечаем шаги
-        if (workoutPlan.steps) {
-            workoutPlan.steps.forEach((_, idx) => { dayStatus[`workout_step_${idx}`] = checked; });
+        if (plan.steps) {
+            plan.steps.forEach((_, idx) => { dayStatus[`workout_step_${idx}`] = checked; });
         }
         saveStorage();
-        renderCurrentTab(); // обновляем отображение
+        updateStreakAndUI();
+    }
+
+    function setNutritionAllChecks(dateStr, checked) {
+        const dayStatus = getDayStatus(dateStr);
+        dayStatus.nutrition = checked;
+        if (!dayStatus.nutritionMeals) dayStatus.nutritionMeals = {};
+        for (const mealKey in NUTRITION_OPTIONS) {
+            NUTRITION_OPTIONS[mealKey].options.forEach((_, idx) => {
+                const optId = `${mealKey}_${idx}`;
+                dayStatus.nutritionMeals[optId] = checked;
+            });
+        }
+        NUTRITION_STEPS.forEach((_, idx) => { dayStatus[`nutrition_step_${idx}`] = checked; });
+        saveStorage();
+        updateStreakAndUI();
+    }
+
+    function setWaterAllChecks(dateStr, checked) {
+        const dayStatus = getDayStatus(dateStr);
+        dayStatus.water = checked;
+        if (checked) {
+            dayStatus.waterMl = WATER_TARGET;
+            WATER_STEPS.forEach((_, idx) => { dayStatus[`water_step_${idx}`] = true; });
+        } else {
+            dayStatus.waterMl = 0;
+            WATER_STEPS.forEach((_, idx) => { dayStatus[`water_step_${idx}`] = false; });
+        }
+        saveStorage();
+        updateStreakAndUI(); // <-- исправлено: теперь обновляем стрейк и перерисовываем
     }
 
     // ----- ОТРИСОВКА ВКЛАДОК -----
     function renderCurrentTab() {
-        const { dayOfWeek, dateStr } = getMoscowDay();
+        const { dateStr, dayOfWeek } = getMoscowDay();
         const dayStatus = getDayStatus(dateStr);
-        const workoutRequired = isWorkoutRequired(dayOfWeek);
-        const workoutPlan = WORKOUT_PLAN[dayOfWeek] || WORKOUT_PLAN[0];
         const container = document.getElementById("tabContent");
         if (!container) return;
 
         if (currentTab === "home") {
-            // Главная вкладка: текущая тренировка + разработка остального
-            const workoutName = workoutPlan.name;
-            const exercisesPreview = workoutPlan.exercises.slice(0, 2).join(", ") + (workoutPlan.exercises.length > 2 ? "…" : "");
+            let optionsHtml = "";
+            for (const [id, profile] of Object.entries(PROFILES)) {
+                const isSelected = (currentProfile === id);
+                optionsHtml += `
+                    <div class="profile-option ${isSelected ? 'selected' : ''}" data-profile-id="${id}">
+                        <div><strong>${profile.name}</strong></div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            ${id === 'base' ? 'Готовое расписание на 7 дней' : 'Новый план в разработке, скоро будет доступен'}
+                        </div>
+                    </div>
+                `;
+            }
             const html = `
                 <div class="plan-card">
                     <div class="plan-header">
-                        <div class="plan-title"><span>🏠</span> Текущая тренировка</div>
+                        <div class="plan-title"><span>🏋️</span> Выберите программу тренировок</div>
                     </div>
-                    <div class="workout-summary">
-                        <div style="font-weight:700; margin-bottom:8px;">📅 ${workoutName}</div>
-                        <div style="font-size:14px; margin-bottom:12px;">${exercisesPreview}</div>
-                        <div class="daily-check" style="justify-content:space-between;">
-                            <label>Выполнено сегодня:</label>
-                            <input type="checkbox" id="homeWorkoutCheck" ${dayStatus.workout ? 'checked' : ''}>
-                        </div>
-                        <button id="gotoWorkoutBtn" style="margin-top:12px; background:#f97316; border:none; color:white; padding:8px 16px; border-radius:40px; cursor:pointer;">Перейти к тренировке →</button>
+                    <div class="profile-selector">
+                        ${optionsHtml}
                     </div>
-                    <div class="info-text">
-                        🚧 <strong>В разработке</strong><br>
-                        • Питание<br>• Вода<br>• Креатин<br>• Протеин
+                    <div class="info-text" style="margin-top:16px;">
+                        🔄 Выбранный профиль определяет, какая тренировка будет отображаться во вкладке «Тренировка».<br>
+                        📅 Базовая тренировка уже настроена по дням недели.
                     </div>
                 </div>
             `;
             container.innerHTML = html;
-            const homeCheck = document.getElementById("homeWorkoutCheck");
-            if (homeCheck) {
-                homeCheck.addEventListener("change", (e) => {
-                    setWorkoutAllChecks(dateStr, e.target.checked);
-                });
-            }
-            const gotoBtn = document.getElementById("gotoWorkoutBtn");
-            if (gotoBtn) {
-                gotoBtn.addEventListener("click", () => {
-                    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-                    const workoutTab = document.querySelector(".tab-btn[data-tab='workout']");
-                    if (workoutTab) {
-                        workoutTab.classList.add("active");
-                        currentTab = "workout";
-                        renderCurrentTab();
+            document.querySelectorAll(".profile-option").forEach(opt => {
+                opt.addEventListener("click", () => {
+                    const profileId = opt.dataset.profileId;
+                    if (profileId && PROFILES[profileId]) {
+                        currentProfile = profileId;
+                        saveProfile();
+                        const dayStatusLocal = getDayStatus(dateStr);
+                        dayStatusLocal.workout = false;
+                        dayStatusLocal.workoutExercises = {};
+                        saveStorage();
+                        updateStreakAndUI();
                     }
                 });
-            }
+            });
         }
         else if (currentTab === "workout") {
+            const plan = getCurrentWorkoutPlan();
+            const workoutRequired = isWorkoutRequired(dayOfWeek);
             let restNote = !workoutRequired ? `<div class="rest-badge" style="margin-bottom:12px;">🔁 Сегодня восстановление — галочка необязательна для огонька</div>` : "";
-            // Шаги действий наверх
-            let stepsHtml = (workoutPlan.steps || []).map((step, idx) => `
+            let stepsHtml = (plan.steps || []).map((step, idx) => `
                 <div class="step-item">
                     <input type="checkbox" class="step-check" data-step-workout="${idx}" ${dayStatus[`workout_step_${idx}`] ? 'checked' : ''}>
                     <span>${step}</span>
                 </div>
             `).join("");
-            let exercisesHtml = workoutPlan.exercises.map((ex, idx) => {
+            let exercisesHtml = (plan.exercises || []).map((ex, idx) => {
                 let isChecked = dayStatus.workoutExercises?.[idx] || false;
                 return `<div class="exercise-item">
                             <input type="checkbox" class="step-check" data-exercise-idx="${idx}" ${isChecked ? 'checked' : ''}>
@@ -468,7 +521,7 @@
             const html = `
                 <div class="plan-card">
                     <div class="plan-header">
-                        <div class="plan-title"><span>🏋️</span> ${workoutPlan.name}</div>
+                        <div class="plan-title"><span>🏋️</span> ${plan.name}</div>
                         <div class="daily-check">
                             <label>Выполнено</label>
                             <input type="checkbox" id="workoutCheckbox" ${dayStatus.workout ? 'checked' : ''}>
@@ -478,7 +531,7 @@
                     <div><strong>📋 Шаги действий:</strong></div>
                     <div class="steps-list">${stepsHtml || '<div class="step-item">Выполни активность по самочувствию</div>'}</div>
                     <div style="margin-top:20px;"><strong>💪 Упражнения:</strong></div>
-                    <div class="workout-list">${exercisesHtml}</div>
+                    <div class="workout-list">${exercisesHtml || '<div class="step-item">Нет упражнений</div>'}</div>
                 </div>`;
             container.innerHTML = html;
             const mainCheck = document.getElementById("workoutCheckbox");
@@ -487,54 +540,37 @@
                     setWorkoutAllChecks(dateStr, e.target.checked);
                 });
             }
-            // Обработка индивидуальных чекбоксов упражнений
+            const checkAutoWorkout = () => {
+                const allExercises = plan.exercises?.length || 0;
+                const checkedExercises = Object.values(dayStatus.workoutExercises || {}).filter(v => v === true).length;
+                const allSteps = plan.steps?.length || 0;
+                const stepsChecked = (plan.steps || []).every((_, i) => dayStatus[`workout_step_${i}`] === true);
+                const allChecked = (checkedExercises === allExercises) && (stepsChecked === allSteps) && (allExercises > 0);
+                if (allChecked && !dayStatus.workout) {
+                    dayStatus.workout = true;
+                    saveStorage();
+                    if (mainCheck) mainCheck.checked = true;
+                } else if (!allChecked && dayStatus.workout) {
+                    dayStatus.workout = false;
+                    saveStorage();
+                    if (mainCheck) mainCheck.checked = false;
+                }
+            };
             document.querySelectorAll("[data-exercise-idx]").forEach(cb => {
                 cb.addEventListener("change", (e) => {
                     let idx = parseInt(e.target.dataset.exerciseIdx);
-                    if (!completedData[dateStr]) completedData[dateStr] = {};
-                    if (!completedData[dateStr].workoutExercises) completedData[dateStr].workoutExercises = {};
-                    completedData[dateStr].workoutExercises[idx] = e.target.checked;
-                    // Проверка: если все упражнения отмечены, можно автоматически отметить общую галочку
-                    const allExercises = workoutPlan.exercises.length;
-                    const checkedCount = Object.values(completedData[dateStr].workoutExercises || {}).filter(v => v === true).length;
-                    const allSteps = (workoutPlan.steps?.length || 0);
-                    const stepsChecked = (workoutPlan.steps || []).every((_, i) => completedData[dateStr][`workout_step_${i}`] === true);
-                    if (checkedCount === allExercises && stepsChecked && allExercises > 0) {
-                        if (!completedData[dateStr].workout) {
-                            completedData[dateStr].workout = true;
-                            if (mainCheck) mainCheck.checked = true;
-                        }
-                    } else {
-                        if (completedData[dateStr].workout) {
-                            completedData[dateStr].workout = false;
-                            if (mainCheck) mainCheck.checked = false;
-                        }
-                    }
+                    if (!dayStatus.workoutExercises) dayStatus.workoutExercises = {};
+                    dayStatus.workoutExercises[idx] = e.target.checked;
                     saveStorage();
+                    checkAutoWorkout();
                     updateStreakAndUI();
                 });
             });
             document.querySelectorAll("[data-step-workout]").forEach((cb, idx) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = {};
-                    completedData[dateStr][`workout_step_${idx}`] = e.target.checked;
-                    // Аналогичная логика: если все шаги и упражнения отмечены, ставим общую галочку
-                    const allExercises = workoutPlan.exercises.length;
-                    const checkedExercises = Object.values(completedData[dateStr].workoutExercises || {}).filter(v => v === true).length;
-                    const allSteps = (workoutPlan.steps?.length || 0);
-                    const stepsChecked = (workoutPlan.steps || []).every((_, i) => completedData[dateStr][`workout_step_${i}`] === true);
-                    if (checkedExercises === allExercises && stepsChecked && allExercises > 0) {
-                        if (!completedData[dateStr].workout) {
-                            completedData[dateStr].workout = true;
-                            if (mainCheck) mainCheck.checked = true;
-                        }
-                    } else {
-                        if (completedData[dateStr].workout) {
-                            completedData[dateStr].workout = false;
-                            if (mainCheck) mainCheck.checked = false;
-                        }
-                    }
+                    dayStatus[`workout_step_${idx}`] = e.target.checked;
                     saveStorage();
+                    checkAutoWorkout();
                     updateStreakAndUI();
                 });
                 if (dayStatus[`workout_step_${idx}`] !== undefined) cb.checked = dayStatus[`workout_step_${idx}`];
@@ -574,21 +610,42 @@
                     <div class="meals-container">${mealsHtml}</div>
                 </div>`;
             container.innerHTML = html;
-            document.getElementById("nutritionCheckbox")?.addEventListener("change", (e) => updateCheck("nutrition", e.target.checked, dateStr));
+            const mainCheck = document.getElementById("nutritionCheckbox");
+            if (mainCheck) {
+                mainCheck.addEventListener("change", (e) => {
+                    setNutritionAllChecks(dateStr, e.target.checked);
+                });
+            }
+            const checkAutoNutrition = () => {
+                const allMeals = Object.values(NUTRITION_OPTIONS).reduce((sum, m) => sum + m.options.length, 0);
+                const checkedMeals = Object.values(dayStatus.nutritionMeals || {}).filter(v => v === true).length;
+                const allStepsChecked = NUTRITION_STEPS.every((_, i) => dayStatus[`nutrition_step_${i}`] === true);
+                if (checkedMeals === allMeals && allStepsChecked && !dayStatus.nutrition) {
+                    dayStatus.nutrition = true;
+                    saveStorage();
+                    if (mainCheck) mainCheck.checked = true;
+                } else if ((checkedMeals !== allMeals || !allStepsChecked) && dayStatus.nutrition) {
+                    dayStatus.nutrition = false;
+                    saveStorage();
+                    if (mainCheck) mainCheck.checked = false;
+                }
+            };
             document.querySelectorAll("[data-meal-opt]").forEach(cb => {
                 cb.addEventListener("change", (e) => {
                     let optId = e.target.dataset.mealOpt;
-                    if (!completedData[dateStr]) completedData[dateStr] = {};
-                    if (!completedData[dateStr].nutritionMeals) completedData[dateStr].nutritionMeals = {};
-                    completedData[dateStr].nutritionMeals[optId] = e.target.checked;
+                    if (!dayStatus.nutritionMeals) dayStatus.nutritionMeals = {};
+                    dayStatus.nutritionMeals[optId] = e.target.checked;
                     saveStorage();
+                    checkAutoNutrition();
+                    updateStreakAndUI();
                 });
             });
             document.querySelectorAll("[data-nutrition-step]").forEach((cb, i) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = {};
-                    completedData[dateStr][`nutrition_step_${i}`] = e.target.checked;
+                    dayStatus[`nutrition_step_${i}`] = e.target.checked;
                     saveStorage();
+                    checkAutoNutrition();
+                    updateStreakAndUI();
                 });
                 if (dayStatus[`nutrition_step_${i}`] !== undefined) cb.checked = dayStatus[`nutrition_step_${i}`];
             });
@@ -624,26 +681,44 @@
             const slider = document.getElementById("waterSlider");
             const waterCheck = document.getElementById("waterCheckbox");
             const updateWater = (val) => {
-                if (!completedData[dateStr]) completedData[dateStr] = {};
                 const newVal = Math.min(WATER_TARGET, Math.max(0, val));
-                completedData[dateStr].waterMl = newVal;
+                dayStatus.waterMl = newVal;
                 const waterCompleted = newVal >= WATER_TARGET;
-                completedData[dateStr].water = waterCompleted;
+                dayStatus.water = waterCompleted;
                 if (waterCheck) waterCheck.checked = waterCompleted;
+                if (waterCompleted) {
+                    WATER_STEPS.forEach((_, idx) => { dayStatus[`water_step_${idx}`] = true; });
+                }
                 saveStorage();
                 updateStreakAndUI();
-                renderCurrentTab();
+                renderCurrentTab(); // вызываем для обновления слайдера, но чтобы избежать рекурсии, проверяем
             };
             if (slider) slider.addEventListener("input", (e) => updateWater(parseInt(e.target.value)));
-            document.getElementById("add200")?.addEventListener("click", () => updateWater((completedData[dateStr]?.waterMl || 0) + 200));
-            document.getElementById("add500")?.addEventListener("click", () => updateWater((completedData[dateStr]?.waterMl || 0) + 500));
+            document.getElementById("add200")?.addEventListener("click", () => updateWater((dayStatus.waterMl || 0) + 200));
+            document.getElementById("add500")?.addEventListener("click", () => updateWater((dayStatus.waterMl || 0) + 500));
             document.getElementById("resetWater")?.addEventListener("click", () => updateWater(0));
-            if (waterCheck) waterCheck.addEventListener("change", (e) => { if (e.target.checked) updateWater(WATER_TARGET); else updateWater(0); });
+            if (waterCheck) {
+                waterCheck.addEventListener("change", (e) => {
+                    if (e.target.checked) setWaterAllChecks(dateStr, true);
+                    else setWaterAllChecks(dateStr, false);
+                });
+            }
             document.querySelectorAll("[data-water-step]").forEach((cb, i) => {
                 cb.addEventListener("change", (e) => {
-                    if (!completedData[dateStr]) completedData[dateStr] = {};
-                    completedData[dateStr][`water_step_${i}`] = e.target.checked;
+                    dayStatus[`water_step_${i}`] = e.target.checked;
                     saveStorage();
+                    const allSteps = WATER_STEPS.every((_, idx) => dayStatus[`water_step_${idx}`] === true);
+                    const waterFull = (dayStatus.waterMl || 0) >= WATER_TARGET;
+                    if (allSteps && waterFull && !dayStatus.water) {
+                        dayStatus.water = true;
+                        if (waterCheck) waterCheck.checked = true;
+                        saveStorage();
+                    } else if ((!allSteps || !waterFull) && dayStatus.water) {
+                        dayStatus.water = false;
+                        if (waterCheck) waterCheck.checked = false;
+                        saveStorage();
+                    }
+                    updateStreakAndUI();
                 });
                 if (dayStatus[`water_step_${i}`] !== undefined) cb.checked = dayStatus[`water_step_${i}`];
             });
@@ -674,13 +749,11 @@
                 </div>`;
             container.innerHTML = html;
             document.getElementById("creatineMorning")?.addEventListener("change", (e) => {
-                if (!completedData[dateStr]) completedData[dateStr] = {};
-                completedData[dateStr].creatineMorning = e.target.checked;
+                dayStatus.creatineMorning = e.target.checked;
                 saveStorage();
             });
             document.getElementById("creatineEvening")?.addEventListener("change", (e) => {
-                if (!completedData[dateStr]) completedData[dateStr] = {};
-                completedData[dateStr].creatineEvening = e.target.checked;
+                dayStatus.creatineEvening = e.target.checked;
                 saveStorage();
             });
         }
@@ -749,7 +822,12 @@
         const { dateStr } = getMoscowDay();
         lastDateStr = dateStr;
         if (!completedData[dateStr]) {
-            completedData[dateStr] = { workout: false, nutrition: false, water: false, workoutExercises: {}, nutritionMeals: {}, creatineMorning: false, creatineEvening: false };
+            completedData[dateStr] = { 
+                workout: false, nutrition: false, water: false, 
+                workoutExercises: {}, nutritionMeals: {}, 
+                creatineMorning: false, creatineEvening: false,
+                waterMl: 0
+            };
             saveStorage();
         }
         initTheme();
