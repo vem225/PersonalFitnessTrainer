@@ -12,7 +12,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ----- Базовые переменные (светлая тема) ----- */
         :root {
             --bg-body: #f8fafc;
             --card-bg: #ffffff;
@@ -60,7 +59,6 @@
             margin: 0 auto;
         }
 
-        /* шапка со стрейком */
         .streak-card {
             background: linear-gradient(135deg, #f97316, #f59e0b);
             border-radius: 32px;
@@ -71,7 +69,6 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.3);
-            position: relative;
         }
         .streak-left {
             display: flex;
@@ -117,7 +114,6 @@
             background: rgba(0,0,0,0.4);
         }
 
-        /* вкладки */
         .tabs {
             display: flex;
             gap: 8px;
@@ -146,7 +142,6 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* карточки разделов */
         .plan-card {
             background: var(--card-bg);
             border-radius: 28px;
@@ -154,7 +149,6 @@
             margin-bottom: 24px;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-light);
-            transition: all 0.2s;
         }
         .plan-header {
             display: flex;
@@ -171,9 +165,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .plan-title span:first-child {
-            font-size: 24px;
         }
         .daily-check {
             display: flex;
@@ -195,7 +186,7 @@
             cursor: pointer;
         }
 
-        .workout-list, .steps-list, .meals-container {
+        .steps-list, .workout-list, .meals-container {
             margin-top: 16px;
         }
         .exercise-item, .step-item, .meal-option {
@@ -231,7 +222,7 @@
             height: 18px;
             margin-top: 2px;
         }
-        .rest-badge {
+        .rest-badge, .dev-badge {
             background: var(--badge-bg);
             border-radius: 30px;
             padding: 4px 12px;
@@ -246,21 +237,18 @@
             color: var(--text-secondary);
             margin-top: 32px;
         }
-        button.secondary {
-            background: none;
-            border: none;
-            font-size: 12px;
-            color: #f97316;
-            margin-top: 12px;
-            text-decoration: underline;
-            cursor: pointer;
-        }
         .info-text {
             background: var(--bg-body);
             padding: 12px;
             border-radius: 20px;
             margin: 12px 0;
             font-size: 14px;
+        }
+        .workout-summary {
+            background: var(--bg-body);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
         @media (max-width: 480px) {
             body { padding: 16px 12px 30px; }
@@ -271,7 +259,6 @@
 </head>
 <body>
 <div class="container">
-    <!-- Streak + дата + переключатель темы -->
     <div class="streak-card">
         <div class="streak-left">
             <div class="fire-icon">🔥</div>
@@ -286,21 +273,17 @@
         </div>
     </div>
 
-    <!-- Вкладки (добавлены креатин и протеин) -->
     <div class="tabs">
-        <button class="tab-btn active" data-tab="workout">🏋️ Тренировка</button>
+        <button class="tab-btn active" data-tab="home">🏠 Главная</button>
+        <button class="tab-btn" data-tab="workout">🏋️ Тренировка</button>
         <button class="tab-btn" data-tab="nutrition">🍽️ Питание</button>
         <button class="tab-btn" data-tab="water">💧 Вода</button>
         <button class="tab-btn" data-tab="creatine">💊 Креатин</button>
         <button class="tab-btn" data-tab="protein">🥛 Протеин</button>
     </div>
 
-    <!-- Динамический контент -->
     <div id="tabContent"></div>
-    <footer>
-        ⚡ Галочки сбрасываются в полночь МСК<br>
-        ✅ Для огонька нужны: тренировка (если она в плане), питание и вода
-    </footer>
+    <footer>⚡ Галочки сбрасываются в полночь МСК<br>✅ Для огонька нужны: тренировка (если в плане), питание и вода</footer>
 </div>
 
 <script>
@@ -315,7 +298,6 @@
         0: { name: "Полный отдых", exercises: ["Восстановление", "Качественный сон", "Питание по плану"], steps: ["Массаж (роллер) при желании", "Подготовка к новой неделе"] }
     };
 
-    // Расширенное питание: несколько вариантов на каждый приём
     const NUTRITION_OPTIONS = {
         breakfast: { title: "Завтрак", options: ["Овсянка + 2 яйца + банан/ягоды (~550 ккал)", "Творог 5% с ягодами + цельнозерновой тост (~480 ккал)", "Яичница из 3 яиц с овощами + хлеб (~520 ккал)"] },
         lunch: { title: "Обед", options: ["Гречка (80г сухих) + куриное филе 200г + овощи (~700 ккал)", "Рис + тунец в собственном соку + салат (~680 ккал)", "Макароны из твердых сортов + говяжий фарш (~750 ккал)"] },
@@ -339,7 +321,7 @@
     }
 
     let completedData = {};
-    let currentTab = "workout";
+    let currentTab = "home";
 
     function loadStorage() {
         const saved = localStorage.getItem("fitnessTrackerData");
@@ -395,6 +377,25 @@
         renderCurrentTab();
     }
 
+    // Функция для автоматической отметки всех чекбоксов тренировки
+    function setWorkoutAllChecks(dateStr, checked) {
+        const dayStatus = getDayStatus(dateStr);
+        // Отмечаем общую галочку
+        dayStatus.workout = checked;
+        // Отмечаем каждое упражнение
+        const workoutPlan = WORKOUT_PLAN[getMoscowDay().dayOfWeek] || WORKOUT_PLAN[0];
+        if (workoutPlan.exercises) {
+            if (!dayStatus.workoutExercises) dayStatus.workoutExercises = {};
+            workoutPlan.exercises.forEach((_, idx) => { dayStatus.workoutExercises[idx] = checked; });
+        }
+        // Отмечаем шаги
+        if (workoutPlan.steps) {
+            workoutPlan.steps.forEach((_, idx) => { dayStatus[`workout_step_${idx}`] = checked; });
+        }
+        saveStorage();
+        renderCurrentTab(); // обновляем отображение
+    }
+
     // ----- ОТРИСОВКА ВКЛАДОК -----
     function renderCurrentTab() {
         const { dayOfWeek, dateStr } = getMoscowDay();
@@ -404,8 +405,59 @@
         const container = document.getElementById("tabContent");
         if (!container) return;
 
-        if (currentTab === "workout") {
+        if (currentTab === "home") {
+            // Главная вкладка: текущая тренировка + разработка остального
+            const workoutName = workoutPlan.name;
+            const exercisesPreview = workoutPlan.exercises.slice(0, 2).join(", ") + (workoutPlan.exercises.length > 2 ? "…" : "");
+            const html = `
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div class="plan-title"><span>🏠</span> Текущая тренировка</div>
+                    </div>
+                    <div class="workout-summary">
+                        <div style="font-weight:700; margin-bottom:8px;">📅 ${workoutName}</div>
+                        <div style="font-size:14px; margin-bottom:12px;">${exercisesPreview}</div>
+                        <div class="daily-check" style="justify-content:space-between;">
+                            <label>Выполнено сегодня:</label>
+                            <input type="checkbox" id="homeWorkoutCheck" ${dayStatus.workout ? 'checked' : ''}>
+                        </div>
+                        <button id="gotoWorkoutBtn" style="margin-top:12px; background:#f97316; border:none; color:white; padding:8px 16px; border-radius:40px; cursor:pointer;">Перейти к тренировке →</button>
+                    </div>
+                    <div class="info-text">
+                        🚧 <strong>В разработке</strong><br>
+                        • Питание<br>• Вода<br>• Креатин<br>• Протеин
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+            const homeCheck = document.getElementById("homeWorkoutCheck");
+            if (homeCheck) {
+                homeCheck.addEventListener("change", (e) => {
+                    setWorkoutAllChecks(dateStr, e.target.checked);
+                });
+            }
+            const gotoBtn = document.getElementById("gotoWorkoutBtn");
+            if (gotoBtn) {
+                gotoBtn.addEventListener("click", () => {
+                    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+                    const workoutTab = document.querySelector(".tab-btn[data-tab='workout']");
+                    if (workoutTab) {
+                        workoutTab.classList.add("active");
+                        currentTab = "workout";
+                        renderCurrentTab();
+                    }
+                });
+            }
+        }
+        else if (currentTab === "workout") {
             let restNote = !workoutRequired ? `<div class="rest-badge" style="margin-bottom:12px;">🔁 Сегодня восстановление — галочка необязательна для огонька</div>` : "";
+            // Шаги действий наверх
+            let stepsHtml = (workoutPlan.steps || []).map((step, idx) => `
+                <div class="step-item">
+                    <input type="checkbox" class="step-check" data-step-workout="${idx}" ${dayStatus[`workout_step_${idx}`] ? 'checked' : ''}>
+                    <span>${step}</span>
+                </div>
+            `).join("");
             let exercisesHtml = workoutPlan.exercises.map((ex, idx) => {
                 let isChecked = dayStatus.workoutExercises?.[idx] || false;
                 return `<div class="exercise-item">
@@ -413,12 +465,6 @@
                             <div class="exercise-name">${ex}</div>
                         </div>`;
             }).join("");
-            let stepsHtml = (workoutPlan.steps || []).map((step, idx) => `
-                <div class="step-item">
-                    <input type="checkbox" class="step-check" data-step-workout="${idx}" ${dayStatus[`workout_step_${idx}`] ? 'checked' : ''}>
-                    <span>${step}</span>
-                </div>
-            `).join("");
             const html = `
                 <div class="plan-card">
                     <div class="plan-header">
@@ -429,31 +475,78 @@
                         </div>
                     </div>
                     ${restNote}
+                    <div><strong>📋 Шаги действий:</strong></div>
+                    <div class="steps-list">${stepsHtml || '<div class="step-item">Выполни активность по самочувствию</div>'}</div>
+                    <div style="margin-top:20px;"><strong>💪 Упражнения:</strong></div>
                     <div class="workout-list">${exercisesHtml}</div>
-                    <div style="margin-top:20px;"><strong>📋 Шаги действий:</strong></div>
-                    <div class="steps-list">${stepsHtml}</div>
                 </div>`;
             container.innerHTML = html;
-            document.getElementById("workoutCheckbox")?.addEventListener("change", (e) => updateCheck("workout", e.target.checked, dateStr));
+            const mainCheck = document.getElementById("workoutCheckbox");
+            if (mainCheck) {
+                mainCheck.addEventListener("change", (e) => {
+                    setWorkoutAllChecks(dateStr, e.target.checked);
+                });
+            }
+            // Обработка индивидуальных чекбоксов упражнений
             document.querySelectorAll("[data-exercise-idx]").forEach(cb => {
                 cb.addEventListener("change", (e) => {
                     let idx = parseInt(e.target.dataset.exerciseIdx);
                     if (!completedData[dateStr]) completedData[dateStr] = {};
                     if (!completedData[dateStr].workoutExercises) completedData[dateStr].workoutExercises = {};
                     completedData[dateStr].workoutExercises[idx] = e.target.checked;
+                    // Проверка: если все упражнения отмечены, можно автоматически отметить общую галочку
+                    const allExercises = workoutPlan.exercises.length;
+                    const checkedCount = Object.values(completedData[dateStr].workoutExercises || {}).filter(v => v === true).length;
+                    const allSteps = (workoutPlan.steps?.length || 0);
+                    const stepsChecked = (workoutPlan.steps || []).every((_, i) => completedData[dateStr][`workout_step_${i}`] === true);
+                    if (checkedCount === allExercises && stepsChecked && allExercises > 0) {
+                        if (!completedData[dateStr].workout) {
+                            completedData[dateStr].workout = true;
+                            if (mainCheck) mainCheck.checked = true;
+                        }
+                    } else {
+                        if (completedData[dateStr].workout) {
+                            completedData[dateStr].workout = false;
+                            if (mainCheck) mainCheck.checked = false;
+                        }
+                    }
                     saveStorage();
+                    updateStreakAndUI();
                 });
             });
             document.querySelectorAll("[data-step-workout]").forEach((cb, idx) => {
                 cb.addEventListener("change", (e) => {
                     if (!completedData[dateStr]) completedData[dateStr] = {};
                     completedData[dateStr][`workout_step_${idx}`] = e.target.checked;
+                    // Аналогичная логика: если все шаги и упражнения отмечены, ставим общую галочку
+                    const allExercises = workoutPlan.exercises.length;
+                    const checkedExercises = Object.values(completedData[dateStr].workoutExercises || {}).filter(v => v === true).length;
+                    const allSteps = (workoutPlan.steps?.length || 0);
+                    const stepsChecked = (workoutPlan.steps || []).every((_, i) => completedData[dateStr][`workout_step_${i}`] === true);
+                    if (checkedExercises === allExercises && stepsChecked && allExercises > 0) {
+                        if (!completedData[dateStr].workout) {
+                            completedData[dateStr].workout = true;
+                            if (mainCheck) mainCheck.checked = true;
+                        }
+                    } else {
+                        if (completedData[dateStr].workout) {
+                            completedData[dateStr].workout = false;
+                            if (mainCheck) mainCheck.checked = false;
+                        }
+                    }
                     saveStorage();
+                    updateStreakAndUI();
                 });
                 if (dayStatus[`workout_step_${idx}`] !== undefined) cb.checked = dayStatus[`workout_step_${idx}`];
             });
-        } 
+        }
         else if (currentTab === "nutrition") {
+            let stepsHtml = NUTRITION_STEPS.map((step, i) => `
+                <div class="step-item">
+                    <input type="checkbox" class="step-check" data-nutrition-step="${i}" ${dayStatus[`nutrition_step_${i}`] ? 'checked' : ''}>
+                    <span>${step}</span>
+                </div>
+            `).join("");
             let mealsHtml = "";
             for (const [key, meal] of Object.entries(NUTRITION_OPTIONS)) {
                 mealsHtml += `<div class="meal-category">🍴 ${meal.title}</div>`;
@@ -466,12 +559,6 @@
                                 </div>`;
                 });
             }
-            let stepsHtml = NUTRITION_STEPS.map((step, i) => `
-                <div class="step-item">
-                    <input type="checkbox" class="step-check" data-nutrition-step="${i}" ${dayStatus[`nutrition_step_${i}`] ? 'checked' : ''}>
-                    <span>${step}</span>
-                </div>
-            `).join("");
             const html = `
                 <div class="plan-card">
                     <div class="plan-header">
@@ -481,9 +568,10 @@
                             <input type="checkbox" id="nutritionCheckbox" ${dayStatus.nutrition ? 'checked' : ''}>
                         </div>
                     </div>
-                    <div class="meals-container">${mealsHtml}</div>
-                    <div style="margin-top:20px;"><strong>📋 Шаги действий:</strong></div>
+                    <div><strong>📋 Шаги действий:</strong></div>
                     <div class="steps-list">${stepsHtml}</div>
+                    <div style="margin-top:20px;"><strong>🍱 Варианты приёмов:</strong></div>
+                    <div class="meals-container">${mealsHtml}</div>
                 </div>`;
             container.innerHTML = html;
             document.getElementById("nutritionCheckbox")?.addEventListener("change", (e) => updateCheck("nutrition", e.target.checked, dateStr));
@@ -522,6 +610,8 @@
                             <input type="checkbox" id="waterCheckbox" ${dayStatus.water ? 'checked' : ''}>
                         </div>
                     </div>
+                    <div><strong>📋 Шаги:</strong></div>
+                    <div class="steps-list">${stepsHtml}</div>
                     <div class="water-target">💧 ${currentWaterMl} / ${WATER_TARGET} мл</div>
                     <input type="range" min="0" max="${WATER_TARGET}" step="100" value="${currentWaterMl}" id="waterSlider" style="width:100%; margin: 8px 0;">
                     <div style="display:flex; gap:8px; margin: 10px 0;">
@@ -529,7 +619,6 @@
                         <button id="add500" style="flex:1; background:var(--btn-add500); border:none; padding:8px; border-radius:40px;">+500 мл</button>
                         <button id="resetWater" style="flex:1; background:var(--btn-secondary); border:none; padding:8px; border-radius:40px;">Сброс</button>
                     </div>
-                    <div class="steps-list">${stepsHtml}</div>
                 </div>`;
             container.innerHTML = html;
             const slider = document.getElementById("waterSlider");
@@ -615,7 +704,6 @@
         document.getElementById("currentDateMSK").innerText = formatted;
     }
 
-    // ----- ТЕМНАЯ ТЕМА -----
     function initTheme() {
         const savedTheme = localStorage.getItem("theme");
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -631,7 +719,6 @@
         });
     }
 
-    // ----- ИНИЦИАЛИЗАЦИЯ -----
     let lastDateStr = null;
     function checkDateChange() {
         const { dateStr } = getMoscowDay();
