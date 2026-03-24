@@ -288,7 +288,7 @@
 </div>
 
 <script>
-    // ---------- ПРОФИЛИ ТРЕНИРОВОК (без изменений) ----------
+    // ---------- ПРОФИЛИ ТРЕНИРОВОК ----------
     const PROFILES = {
         base: {
             name: "Базовая тренировка (по расписанию)",
@@ -316,7 +316,6 @@
         }
     };
 
-    // Питание
     const NUTRITION_OPTIONS = {
         breakfast: { title: "Завтрак", options: ["Овсянка + 2 яйца + банан/ягоды (~550 ккал)", "Творог 5% с ягодами + цельнозерновой тост (~480 ккал)", "Яичница из 3 яиц с овощами + хлеб (~520 ккал)"] },
         lunch: { title: "Обед", options: ["Гречка (80г сухих) + куриное филе 200г + овощи (~700 ккал)", "Рис + тунец в собственном соку + салат (~680 ккал)", "Макароны из твердых сортов + говяжий фарш (~750 ккал)"] },
@@ -324,7 +323,6 @@
         dinner: { title: "Ужин", options: ["Рыба (200г) + тушеные овощи (~550 ккал)", "Омлет из 4 яиц + сыр + салат (~560 ккал)", "Куриная грудка + гречка (легкая порция) (~520 ккал)"] }
     };
     const NUTRITION_STEPS = ["Приготовить завтрак до 9:00", "Контроль порций (белок + сложные углеводы)", "Не пропускать перекус", "Ужин за 2–3 часа до сна"];
-
     const WATER_TARGET = 2500;
     const WATER_STEPS = ["Выпить стакан воды сразу после пробуждения", "Пить по 200–300 мл каждые 1–1.5 часа", "Следить за цветом мочи (светлый)"];
 
@@ -336,19 +334,21 @@
     let apiUrl = null;
     let syncTimeout = null;
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ API ----------
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ API (с заголовком для ngrok) ----------
     async function syncToServer() {
         if (!apiUrl || !tgId) {
             console.log("syncToServer: нет apiUrl или tgId");
             return;
         }
-        // Убираем завершающий слеш, если есть
         let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
         try {
             console.log(`Отправка данных на ${baseUrl}/save_data для tg_id=${tgId}`);
             const response = await fetch(`${baseUrl}/save_data`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': '1'   // обходим предупреждение ngrok
+                },
                 body: JSON.stringify({ tg_id: tgId, data: completedData })
             });
             if (!response.ok) {
@@ -370,7 +370,11 @@
         let baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
         try {
             console.log(`Загрузка данных с ${baseUrl}/get_data?tg_id=${tgId}`);
-            const response = await fetch(`${baseUrl}/get_data?tg_id=${tgId}`);
+            const response = await fetch(`${baseUrl}/get_data?tg_id=${tgId}`, {
+                headers: {
+                    'ngrok-skip-browser-warning': '1'   // обходим предупреждение ngrok
+                }
+            });
             if (!response.ok) {
                 const text = await response.text();
                 throw new Error(`Server error ${response.status}: ${text}`);
@@ -379,9 +383,7 @@
             if (Object.keys(data).length > 0) {
                 console.log(`✅ Загружено ${Object.keys(data).length} записей с сервера`);
                 completedData = data;
-                // Сохраняем локально
                 localStorage.setItem('fitnessTrackerData', JSON.stringify(completedData));
-                // Восстанавливаем профиль, если он сохранён
                 if (data._selectedProfile && PROFILES[data._selectedProfile]) {
                     currentProfile = data._selectedProfile;
                     localStorage.setItem('selectedProfile', currentProfile);
@@ -410,7 +412,6 @@
 
     function saveStorage() {
         localStorage.setItem("fitnessTrackerData", JSON.stringify(completedData));
-        // Отправляем на сервер с задержкой, чтобы не слать при каждом чихе
         if (syncTimeout) clearTimeout(syncTimeout);
         syncTimeout = setTimeout(() => syncToServer(), 300);
     }
@@ -419,11 +420,11 @@
         localStorage.setItem("selectedProfile", currentProfile);
         if (completedData) {
             completedData._selectedProfile = currentProfile;
-            saveStorage(); // это вызовет syncToServer
+            saveStorage();
         }
     }
 
-    // ---------- ОСТАЛЬНЫЕ ФУНКЦИИ (основная логика) ----------
+    // ---------- ОСНОВНАЯ ЛОГИКА (без изменений) ----------
     function getMoscowDay() {
         const now = new Date();
         const mskDate = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Moscow" }));
@@ -528,7 +529,7 @@
         updateStreakAndUI();
     }
 
-    // ----- ОТРИСОВКА ВКЛАДОК (полностью скопирована из вашего кода, но с заменой saveStorage на наш) -----
+    // ----- ОТРИСОВКА ВКЛАДОК (без изменений, полная копия из предыдущего рабочего кода) -----
     function renderCurrentTab() {
         const { dateStr, dayOfWeek } = getMoscowDay();
         const dayStatus = getDayStatus(dateStr);
@@ -768,7 +769,7 @@
                 }
                 saveStorage();
                 updateStreakAndUI();
-                renderCurrentTab(); // обновляем для корректного отображения слайдера
+                renderCurrentTab();
             };
             if (slider) slider.addEventListener("input", (e) => updateWater(parseInt(e.target.value)));
             document.getElementById("add200")?.addEventListener("click", () => updateWater((dayStatus.waterMl || 0) + 200));
@@ -894,13 +895,12 @@
     function init() {
         const urlParams = new URLSearchParams(window.location.search);
         tgId = urlParams.get('tg_id');
-        apiUrl = "https://emil-nonboding-comfily.ngrok-free.dev";
+        apiUrl = "https://emil-nonboding-comfily.ngrok-free.dev";  // прямое указание
         console.log("Получены параметры:", { tgId, apiUrl });
 
         loadStorage();
 
         if (apiUrl && tgId) {
-            // Сначала загружаем с сервера, потом отображаем
             loadFromServer().finally(() => {
                 updateStreakAndUI();
             });
